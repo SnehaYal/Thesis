@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent Chat Interface – Layout Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose: #c9a8a8;
+    --rose-bg: #e8d5d5;
+    --rose-border: #b89090;
+    --rose-hover: #bfa0a0;
+    --rose-btn: #d4b5b5;
+    --text: #1a1a1a;
+    --muted: #888;
+    --bg: #ffffff;
+    --card-bg: #f5f3f3;
+    --border: #d0caca;
+    --radius: 10px;
+    --font: 'Courier Prime', 'Courier New', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; animation: fadeIn .3s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── STEP 1 ── */
+  #step1 { padding: 60px 260px 80px; max-width: 1400px; }
+  .question-block { margin-bottom: 52px; }
+  .question-label {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+  .pill-group { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill {
+    padding: 7px 16px;
+    border: 1.5px solid var(--rose-border);
+    border-radius: 20px;
+    background: var(--rose-bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .1s;
+    user-select: none;
+  }
+  .pill:hover { background: var(--rose-hover); border-color: #a07878; transform: translateY(-1px); }
+  .pill.selected { background: var(--rose); border-color: #8a6060; font-weight: 700; }
+
+  .next-btn {
+    display: block;
+    margin-left: auto;
+    margin-top: 10px;
+    padding: 12px 36px;
+    background: var(--rose-btn);
+    border: 1.5px solid var(--rose-border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+  }
+  .next-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .next-btn:not(:disabled):hover { background: var(--rose-hover); }
+
+  /* ── STEP 2 ── */
+  #step2 { padding: 120px 200px 80px; max-width: 1400px; }
+  .step2-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 48px;
+  }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .tag {
+    padding: 5px 12px;
+    border: 1.5px solid var(--rose-border);
+    border-radius: 20px;
+    background: var(--rose-bg);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tag-x { cursor: pointer; font-weight: 700; color: #666; transition: color .1s; }
+  .tag-x:hover { color: #333; }
+
+  .text-input-wrap {
+    display: flex; align-items: center; gap: 0;
+    border: 2px solid var(--text);
+    border-radius: 30px;
+    background: #f0edec;
+    padding: 10px 14px 10px 20px;
+    margin-bottom: 20px;
+  }
+  .text-input-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 1rem;
+    color: var(--text);
+    outline: none;
+  }
+  .text-input-wrap input::placeholder { color: #aaa; }
+  .input-icons { display: flex; align-items: center; gap: 4px; margin-left: 10px; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer;
+    padding: 4px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+    font-size: 1.1rem;
+  }
+  .icon-btn:hover { background: rgba(0,0,0,.07); }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  .generate-btn {
+    display: block;
+    margin-left: auto;
+    padding: 14px 40px;
+    background: var(--rose-btn);
+    border: 1.5px solid var(--rose-border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+  }
+  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .generate-btn.ready { background: var(--rose); border-color: #9a7070; }
+  .generate-btn.ready:hover { background: var(--rose-hover); }
+
+  /* ── DRAW CANVAS ── */
+  .canvas-wrap {
+    border: 2px solid var(--text);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .canvas-toolbar {
+    display: flex; align-items: center; gap: 0;
+    border-bottom: 1.5px solid var(--border);
+    padding: 8px 12px;
+    background: #f5f3f3;
+  }
+  .canvas-toolbar .tool-btn {
+    padding: 6px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    cursor: pointer;
+    margin-right: 8px;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .12s;
+  }
+  .canvas-toolbar .tool-btn:hover { background: #eee; }
+  .canvas-toolbar .tool-btn.active { background: var(--rose-bg); border-color: var(--rose-border); }
+  .canvas-toolbar .back-btn {
+    margin-left: auto;
+    margin-right: 0;
+    padding: 6px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .canvas-toolbar .back-btn:hover { background: #eee; }
+  #sketchCanvas {
+    display: block; width: 100%; height: 420px;
+    background: white; cursor: crosshair;
+    touch-action: none;
+  }
+
+  /* ── LOADING ── */
+  #step3 { 
+    padding: 120px 260px; 
+    max-width: 1400px;
+  }
+  .loading-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+  .loading-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 80px; }
+  .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .spinner {
+    width: 56px; height: 56px;
+    border: 3px solid var(--rose-bg);
+    border-top-color: var(--rose-border);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gen-text { color: var(--muted); font-size: 0.95rem; }
+
+  /* ── STEP 4 RESULTS ── */
+  #step4 { padding: 40px 100px 80px; max-width: 1200px; }
+  .result-title { font-size: 2rem; font-weight: 700; margin-bottom: 6px; }
+  .result-sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 32px; }
+
+  .config-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .config-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+  .config-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .config-item label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 4px; }
+  .config-item span { font-size: 0.95rem; font-weight: 700; }
+  .config-description label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 6px; }
+  .config-description p { font-size: 0.95rem; }
+  .config-sketch-thumb {
+    width: 140px; height: 100px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    object-fit: contain;
+  }
+
+  .preview-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .preview-label { font-size: 1rem; font-weight: 700; }
+  .preview-toggle {
+    display: flex; gap: 8px;
+  }
+  .toggle-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: var(--font);
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .toggle-btn.active { background: var(--rose-bg); border-color: var(--rose-border); }
+
+  .widget-preview-container { 
+    display: flex; justify-content: center;
+    margin-bottom: 32px;
+  }
+  .widget-frame-desktop {
+    width: 100%;
+    max-width: 760px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+  }
+  .widget-frame-phone {
+    width: 375px;
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    background: white;
+  }
+
+  #widgetIframe {
+    width: 100%; 
+    min-height: 420px;
+    border: none;
+    display: block;
+  }
+
+  .create-another {
+    display: block;
+    margin: 0 auto;
+    padding: 14px 48px;
+    background: white;
+    border: 2px solid var(--text);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .create-another:hover { background: #f0edec; }
+
+  .error-msg {
+    color: #c0392b;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* API Key modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: white;
+    border: 2px solid var(--text);
+    border-radius: var(--radius);
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+  }
+  .modal h2 { font-size: 1.3rem; margin-bottom: 12px; }
+  .modal p { font-size: 0.9rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+  .modal input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .modal input:focus { border-color: var(--rose-border); }
+  .modal-save {
+    width: 100%;
+    padding: 12px;
+    background: var(--rose);
+    border: 1.5px solid var(--rose-border);
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .modal-save:hover { background: var(--rose-hover); }
+
+  @media (max-width: 768px) {
+    #step1 { padding: 40px 24px 60px; }
+    #step2 { padding: 60px 24px 60px; }
+    #step3 { padding: 60px 24px; }
+    #step4 { padding: 30px 24px 60px; }
+    .step2-title { font-size: 1.5rem; }
+    .config-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .widget-frame-phone { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay hidden" id="apiModal">
+  <div class="modal">
+    <h2>Enter your Anthropic API Key</h2>
+    <p>This app uses the Claude API to generate widgets. Your key is stored only in this browser session and never sent anywhere except Anthropic's API.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+    <button class="modal-save" id="saveApiKey">Save & Continue</button>
+  </div>
+</div>
+
+<!-- STEP 1: Properties -->
+<div class="screen active" id="step1">
+  <div class="question-block">
+    <div class="question-label">What type of a widget do you need to build today?</div>
+    <div class="pill-group" data-group="type">
+      <button class="pill" data-val="Informational">Informational</button>
+      <button class="pill" data-val="Entertainment">Entertainment</button>
+      <button class="pill" data-val="Communication">Communication</button>
+      <button class="pill" data-val="Productivity">Productivity</button>
+      <button class="pill" data-val="Fitness">Fitness</button>
+      <button class="pill" data-val="Other">Other</button>
+    </div>
+  </div>
+
+  <div class="question-block">
+    <div class="question-label">What size?</div>
+    <div class="pill-group" data-group="size">
+      <button class="pill" data-val="Small">Small</button>
+      <button class="pill" data-val="Medium">Medium</button>
+      <button class="pill" data-val="Large">Large</button>
+      <button class="pill" data-val="Brick">Brick</button>
+      <button class="pill" data-val="Custom">Custom</button>
+    </div>
+  </div>
+
+  <div class="question-block">
+    <div class="question-label">Functionality</div>
+    <div class="pill-group" data-group="functionality">
+      <button class="pill" data-val="Static">Static</button>
+      <button class="pill" data-val="Dynamic">Dynamic</button>
+      <button class="pill" data-val="Interactive">Interactive</button>
+      <button class="pill" data-val="Hybrid">Hybrid</button>
+    </div>
+  </div>
+
+  <div class="question-block">
+    <div class="question-label">Pick your input format</div>
+    <div class="pill-group" data-group="format">
+      <button class="pill" data-val="Lock">Lock</button>
+      <button class="pill" data-val="Home">Home</button>
+      <button class="pill" data-val="Both">Both</button>
+      <button class="pill" data-val="Unsure">Unsure</button>
+    </div>
+  </div>
+
+  <button class="next-btn" id="nextBtn" disabled>Next</button>
+</div>
+
+<!-- STEP 2: Describe widget -->
+<div class="screen" id="step2">
+  <div class="step2-title">
+    Tell us what you want your widget to do.<br>
+    Select icons to change input formatting
+  </div>
+
+  <div class="tag-row" id="tagRow"></div>
+
+  <!-- TEXT INPUT MODE -->
+  <div id="textMode">
+    <div class="text-input-wrap">
+      <input type="text" id="widgetDesc" placeholder="Input here" />
+      <div class="input-icons">
+        <!-- List / text mode icon (active state indicator) -->
+        <button class="icon-btn" title="Text input" id="iconText">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/>
+          </svg>
+        </button>
+        <!-- Voice icon -->
+        <button class="icon-btn" title="Voice input (not available in local mode)" id="iconVoice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+            <circle cx="17" cy="17" r="3" fill="currentColor" stroke="none"/>
+            <line x1="19" y1="15" x2="19" y2="15.01" stroke="white" stroke-width="1.5"/>
+          </svg>
+        </button>
+        <!-- Draw icon -->
+        <button class="icon-btn" title="Switch to sketch input" id="iconDraw">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAW MODE -->
+  <div id="drawMode" style="display:none">
+    <div class="canvas-wrap">
+      <div class="canvas-toolbar">
+        <button class="tool-btn active" id="toolDraw">✏️ Draw</button>
+        <button class="tool-btn" id="toolErase">◇ Erase</button>
+        <button class="tool-btn" id="toolClear">🗑 Clear</button>
+        <button class="back-btn" id="backToText">Back to Text</button>
+      </div>
+      <canvas id="sketchCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg">Please add a description or sketch before generating.</div>
+  <button class="generate-btn" id="generateBtn">Generate Widget</button>
+</div>
+
+<!-- STEP 3: Loading -->
+<div class="screen" id="step3">
+  <div class="loading-title">Your Generated Widget</div>
+  <div class="loading-sub" id="loadingSub">Analyzing your requirements...</div>
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <div class="gen-text">Generating your widget...</div>
+  </div>
+</div>
+
+<!-- STEP 4: Result -->
+<div class="screen" id="step4">
+  <div class="result-title">Your Generated Widget</div>
+  <div class="result-sub" id="resultSub"></div>
+
+  <div class="config-card">
+    <h3>Configuration</h3>
+    <div class="config-grid">
+      <div class="config-item"><label>Type</label><span id="rType"></span></div>
+      <div class="config-item"><label>Size</label><span id="rSize"></span></div>
+      <div class="config-item"><label>Functionality</label><span id="rFunctionality"></span></div>
+      <div class="config-item"><label>Format</label><span id="rFormat"></span></div>
+    </div>
+    <div id="descSection" class="config-description" style="display:none">
+      <label>Description</label>
+      <p id="rDescription"></p>
+    </div>
+    <div id="sketchSection" style="display:none">
+      <label style="font-size:.78rem;color:var(--muted);display:block;margin-bottom:8px;">Your Sketch</label>
+      <img class="config-sketch-thumb" id="rSketch" alt="Your sketch" />
+    </div>
+  </div>
+
+  <div class="preview-row">
+    <span class="preview-label">Preview:</span>
+    <div class="preview-toggle">
+      <button class="toggle-btn active" id="toggleDesktop">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Desktop
+      </button>
+      <button class="toggle-btn" id="togglePhone">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        Phone
+      </button>
+    </div>
+  </div>
+
+  <div class="widget-preview-container">
+    <div id="widgetFrameWrap" class="widget-frame-desktop">
+      <iframe id="widgetIframe" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+  </div>
+
+  <button class="create-another" id="createAnother">Create Another Widget</button>
+</div>
+
+<script>
+// ─── STATE ─────────────────────────────────────
+const state = {
+  type: null, size: null, functionality: null, format: null,
+  description: '',
+  sketchDataUrl: null,
+  inputMode: 'text', // 'text' | 'draw'
+  apiKey: ''
+};
+
+// ─── SCREENS ───────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ─── API KEY ───────────────────────────────────
+const apiModal = document.getElementById('apiModal');
+const apiKeyInput = document.getElementById('apiKeyInput');
+document.getElementById('saveApiKey').addEventListener('click', () => {
+  const key = apiKeyInput.value.trim();
+  if (!key.startsWith('sk-')) { apiKeyInput.style.borderColor = 'red'; return; }
+  state.apiKey = key;
+  apiModal.classList.add('hidden');
+});
+
+// ─── STEP 1: PILL SELECTION ─────────────────────
+document.querySelectorAll('.pill-group').forEach(group => {
+  group.addEventListener('click', e => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    group.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    state[group.dataset.group] = pill.dataset.val;
+    updateNextBtn();
+  });
+});
+
+function updateNextBtn() {
+  const allSelected = state.type && state.size && state.functionality && state.format;
+  document.getElementById('nextBtn').disabled = !allSelected;
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  renderTags();
+  showScreen('step2');
+});
+
+// ─── STEP 2: TAGS ──────────────────────────────
+function renderTags() {
+  const row = document.getElementById('tagRow');
+  row.innerHTML = '';
+  const vals = [
+    { key: 'type', val: state.type },
+    { key: 'size', val: state.size },
+    { key: 'functionality', val: state.functionality },
+    { key: 'format', val: state.format }
+  ];
+  vals.forEach(({ key, val }) => {
+    if (!val) return;
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `${val} <span class="tag-x" data-key="${key}">x</span>`;
+    row.appendChild(tag);
+  });
+  row.querySelectorAll('.tag-x').forEach(x => {
+    x.addEventListener('click', () => {
+      state[x.dataset.key] = null;
+      renderTags();
+    });
+  });
+}
+
+// ─── STEP 2: INPUT MODE SWITCH ─────────────────
+const textMode = document.getElementById('textMode');
+const drawMode = document.getElementById('drawMode');
+
+document.getElementById('iconDraw').addEventListener('click', () => {
+  state.inputMode = 'draw';
+  textMode.style.display = 'none';
+  drawMode.style.display = 'block';
+  initCanvas();
+});
+
+document.getElementById('backToText').addEventListener('click', () => {
+  state.inputMode = 'text';
+  drawMode.style.display = 'none';
+  textMode.style.display = 'block';
+});
+
+document.getElementById('widgetDesc').addEventListener('input', e => {
+  state.description = e.target.value;
+  updateGenerateBtn();
+});
+
+function updateGenerateBtn() {
+  const btn = document.getElementById('generateBtn');
+  const hasContent = state.description.trim() || state.sketchDataUrl;
+  btn.disabled = false;
+  if (hasContent) btn.classList.add('ready');
+  else btn.classList.remove('ready');
+}
+
+// ─── CANVAS DRAWING ────────────────────────────
+let canvas, ctx, drawing = false, erasing = false;
+let lastX = 0, lastY = 0;
+
+function initCanvas() {
+  if (canvas) return;
+  canvas = document.getElementById('sketchCanvas');
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = 420;
+  ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return [src.clientX - rect.left, src.clientY - rect.top];
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    [lastX, lastY] = getPos(e);
+  }
+  function doDraw(e) {
+    e.preventDefault();
+    if (!drawing) return;
+    const [x, y] = getPos(e);
+    ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+    state.sketchDataUrl = canvas.toDataURL();
+    updateGenerateBtn();
+  }
+  function stopDraw() { drawing = false; }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', doDraw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', doDraw, { passive: false });
+  canvas.addEventListener('touchend', stopDraw);
+}
+
+document.getElementById('toolDraw').addEventListener('click', () => {
+  erasing = false;
+  document.getElementById('toolDraw').classList.add('active');
+  document.getElementById('toolErase').classList.remove('active');
+});
+document.getElementById('toolErase').addEventListener('click', () => {
+  erasing = true;
+  document.getElementById('toolErase').classList.add('active');
+  document.getElementById('toolDraw').classList.remove('active');
+});
+document.getElementById('toolClear').addEventListener('click', () => {
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  state.sketchDataUrl = null;
+  updateGenerateBtn();
+});
+
+// ─── GENERATE ──────────────────────────────────
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  if (!state.apiKey) {
+    apiModal.classList.remove('hidden');
+    return;
+  }
+  await generateWidget();
+});
+
+async function generateWidget() {
+  showScreen('step3');
+  document.getElementById('loadingSub').textContent = `${state.type || ''} Widget`;
+
+  try {
+    const messages = buildMessages();
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: `You are an expert UI widget developer. Generate a complete, self-contained HTML widget based on user specifications. 
+Rules:
+- Return ONLY the complete HTML code, nothing else — no explanation, no markdown fences.
+- The widget must be a single HTML file with embedded CSS and JS.
+- Make it visually polished and functional.
+- Use appropriate colors, fonts (from Google Fonts if needed), and interactivity.
+- Fit naturally in an iframe — don't use body margin/overflow issues.
+- Match the widget type and functionality described.
+- For Interactive/Dynamic widgets, make them actually work (calculators calculate, timers count, etc.)
+- Size guidelines: Small=200px tall, Medium=300px tall, Large=450px tall, Brick=150px wide x 150px tall.`,
+        messages
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'API error');
+    }
+
+    const data = await response.json();
+    const html = data.content.map(b => b.text || '').join('');
+    showResult(html);
+  } catch (err) {
+    alert('Error generating widget: ' + err.message + '\n\nMake sure your API key is valid.');
+    showScreen('step2');
+  }
+}
+
+function buildMessages() {
+  const desc = state.description.trim();
+  const hasSketch = !!state.sketchDataUrl;
+
+  let prompt = `Create a ${state.type || 'general'} widget with the following specs:
+- Type: ${state.type || 'General'}
+- Size: ${state.size || 'Medium'}  
+- Functionality: ${state.functionality || 'Static'}
+- Input format context: ${state.format || 'Unsure'}`;
+
+  if (desc) prompt += `\n- Description: ${desc}`;
+  if (hasSketch) prompt += `\n- The user provided a sketch showing their rough layout idea (see image).`;
+  prompt += `\n\nGenerate the complete widget HTML now.`;
+
+  if (hasSketch) {
+    return [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/png', data: state.sketchDataUrl.split(',')[1] } },
+        { type: 'text', text: prompt }
+      ]
+    }];
+  }
+
+  return [{ role: 'user', content: prompt }];
+}
+
+function showResult(html) {
+  document.getElementById('resultSub').textContent = `${state.type || 'Custom'} Widget`;
+  document.getElementById('rType').textContent = state.type || '—';
+  document.getElementById('rSize').textContent = state.size || '—';
+  document.getElementById('rFunctionality').textContent = state.functionality || '—';
+  document.getElementById('rFormat').textContent = state.format || '—';
+
+  if (state.description.trim()) {
+    document.getElementById('descSection').style.display = 'block';
+    document.getElementById('rDescription').textContent = state.description;
+    document.getElementById('sketchSection').style.display = 'none';
+  } else if (state.sketchDataUrl) {
+    document.getElementById('sketchSection').style.display = 'block';
+    document.getElementById('rSketch').src = state.sketchDataUrl;
+    document.getElementById('descSection').style.display = 'none';
+  } else {
+    document.getElementById('descSection').style.display = 'none';
+    document.getElementById('sketchSection').style.display = 'none';
+  }
+
+  const iframe = document.getElementById('widgetIframe');
+  iframe.srcdoc = html;
+
+  showScreen('step4');
+}
+
+// ─── PREVIEW TOGGLE ─────────────────────────────
+document.getElementById('toggleDesktop').addEventListener('click', () => {
+  document.getElementById('widgetFrameWrap').className = 'widget-frame-desktop';
+  document.getElementById('toggleDesktop').classList.add('active');
+  document.getElementById('togglePhone').classList.remove('active');
+});
+document.getElementById('togglePhone').addEventListener('click', () => {
+  document.getElementById('widgetFrameWrap').className = 'widget-frame-phone';
+  document.getElementById('togglePhone').classList.add('active');
+  document.getElementById('toggleDesktop').classList.remove('active');
+});
+
+// ─── CREATE ANOTHER ─────────────────────────────
+document.getElementById('createAnother').addEventListener('click', () => {
+  // Reset state
+  state.type = null; state.size = null;
+  state.functionality = null; state.format = null;
+  state.description = ''; state.sketchDataUrl = null;
+  state.inputMode = 'text';
+
+  // Reset UI
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('widgetDesc').value = '';
+  document.getElementById('generateBtn').classList.remove('ready');
+  textMode.style.display = 'block';
+  drawMode.style.display = 'none';
+  canvas = null; ctx = null;
+  document.getElementById('toggleDesktop').classList.add('active');
+  document.getElementById('togglePhone').classList.remove('active');
+  document.getElementById('widgetFrameWrap').className = 'widget-frame-desktop';
+
+  showScreen('step1');
+});
+</script>
+</body>
+</html>
