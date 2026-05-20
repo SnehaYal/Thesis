@@ -4,7 +4,20 @@ Smartphones are built around apps, not around the people using them. Data people
 
 User research revealed the core frustration is functional mismatch, not aesthetics. People don't need prettier widgets. They need interfaces that fit how their lives are actually structured.
 
-Widget Builder is a tool for generating custom HTML widgets using the Claude AI API. Describe your widget with text or a freehand sketch, and get a live-preview embed you can export.
+Widget Builder is the implementation tool behind **ALIGNED** — a three-stage framework that keeps the user in control from start to finish.
+
+## The ALIGNED Framework
+
+**1. Identify**
+The system surfaces where the user's phone is already creating unnecessary effort, using patterns from their own screen time and app behavior — so they don't have to diagnose the problem themselves.
+
+**2. Collaborate**
+Working with an AI agent through whatever input feels natural — a sketch, a description, a screenshot — the system generates a custom interface built around the user's actual habits, not a template.
+
+**3. Implement**
+The user decides whether to put it on their phone. Nothing gets added without a deliberate choice.
+
+Over time, what the user builds gets saved and maintained, so the work doesn't disappear when their habits evolve.
 
 ## Features
 
