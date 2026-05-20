@@ -1,6 +1,10 @@
 # Widget Builder
 
-A 4-step wizard app that generates custom HTML widgets using the Claude AI API. Describe your widget with text or a freehand sketch, and get a live-preview embed you can export.
+Smartphones are built around apps, not around the people using them. Data people need exists across their apps daily, but lives in silos; leaving users to do the mental work of connecting it themselves.
+
+User research revealed the core frustration is functional mismatch, not aesthetics. People don't need prettier widgets. They need interfaces that fit how their lives are actually structured.
+
+Widget Builder is a tool for generating custom HTML widgets using the Claude AI API. Describe your widget with text or a freehand sketch, and get a live-preview embed you can export.
 
 ## Features
 
